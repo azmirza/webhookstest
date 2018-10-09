@@ -32,16 +32,14 @@ namespace MicrosoftGraphAspNetCoreConnectSample.Controllers
                 //application would likely queue for additional processing.
                 //Store the notifications in application state. A production
                 //application would likely queue for additional processing.
-                ConcurrentBag<Notification> notificationArray;
-                if (TempData["notification"] != null)
-                {
-                    notificationArray = (ConcurrentBag<Notification>)JsonConvert.DeserializeObject(TempData["notifications"].ToString());
-                }
-                else
+                ConcurrentBag<Notification> notificationArray = NotificationsStore.GetNotifications();
+                if (notificationArray == null)
                 {
                     notificationArray = new ConcurrentBag<Notification>();
                 }
-                TempData["notifications"] = JsonConvert.SerializeObject(notificationArray);
+
+                NotificationsStore.SaveNotifications(notificationArray);
+
                 return View(notificationArray);
             }
             return View();
@@ -89,18 +87,15 @@ namespace MicrosoftGraphAspNetCoreConnectSample.Controllers
                                         //Store the notifications in application state. A production
                                         //application would likely queue for additional processing.
 
-                                        ConcurrentBag<Notification> notificationArray;
-                                        if (TempData["notification"] != null)
-                                        {
-                                            notificationArray = (ConcurrentBag<Notification>)JsonConvert.DeserializeObject(TempData["notifications"].ToString());
-                                        }
-                                        else
+                                        ConcurrentBag<Notification> notificationArray = NotificationsStore.GetNotifications();
+                                        if (notificationArray == null)
                                         {
                                             notificationArray = new ConcurrentBag<Notification>();
                                         }
 
                                         notificationArray.Add(current);
-                                        TempData["notifications"] = JsonConvert.SerializeObject(notificationArray);
+                                        NotificationsStore.SaveNotifications(notificationArray);
+                                        //TempData["notifications"] = JsonConvert.SerializeObject(notificationArray);
                                     }
                                 }
                             }

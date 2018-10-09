@@ -47,7 +47,7 @@ namespace MicrosoftGraphAspNetCoreConnectSample.Controllers
 
                 Subscription subscription = new Subscription
                 {
-                    Resource = "me/mailFolders('Inbox')/messages",
+                    Resource = "me/messages",
                     ChangeType = "created,updated",
                     NotificationUrl = GraphAuthProvider.GetNotificationUrl(),
                     ClientState = Guid.NewGuid().ToString(),
