@@ -1,4 +1,4 @@
-# Microsoft Graph Connect Sample for ASP.NET Core 2.0
+# Microsoft Graph Webhooks Sample for ASP.NET Core 2.0
 
 ## Table of contents
 
@@ -34,6 +34,20 @@ To use the Microsoft Graph Connect Sample for ASP.NET Core 2.0, you need the fol
 * Either a [personal Microsoft account](https://signup.live.com) or a [work or school account](https://dev.office.com/devprogram). (You don't need to be an administrator of the tenant.)
 * The application ID and key from the application that you [register on the App Registration Portal](#register-the-app).
 
+## Create the Azure Web App
+
+Webhooks in Microsoft Graph require a publicly accessible endpoint such as a Microsoft Azure Web App or another web server. This lab uses **Microsoft Azure**.
+
+1. In the Microsoft Azure portal, create a new web app by selecting **+ Create a resource > Web + Mobile > Web App**.
+
+1. Provide a unique name, choose the subscription, and provide a resource group.
+
+1. Choose **Windows** as the OS type.
+
+1. Edit the app service plan. Provide the name, location, and change the pricing tier to **Free**.
+
+1. Select **OK** and then select **Create**. Copy the URL for later use.
+
 ## Register the app
 
 This app uses the Azure AD v2.0 endpoint, so you'll register it on the [App Registration Portal](https://apps.dev.microsoft.com/).
@@ -56,11 +70,11 @@ This app uses the Azure AD v2.0 endpoint, so you'll register it on the [App Regi
 
    e. Choose **Web**.
 
-   f. Make sure the **Allow Implicit Flow** check box is selected, and add `https://localhost:44334/signin-oidc` as a **Redirect URL**. This is the base callback URL for this sample.
-
+   f. Make sure the **Allow Implicit Flow** check box is selected, and add  Microsoft Azure Web App (ex: https://YOURWEBAPP.azurewebsites.net/) as a **Redirect URL**. This is the base callback URL for this sample.
+   
    >The **Allow Implicit Flow** option enables the hybrid flow. During authentication, this enables the app to receive both sign-in info (the id_token) and artifacts (in this case, an authorization code) that the app can use to obtain an access token.
 
-   g. Enter `https://localhost:44334/Account/SignOut` as the **Logout URL**.
+   g. Enter `https://YOURWEBAPP.azurewebsites.net/Account/SignOut` as the **Logout URL**.
   
    h. Click **Save**.
 
@@ -84,21 +98,32 @@ This app uses the Azure AD v2.0 endpoint, so you'll register it on the [App Regi
 
 3. In Solution Explorer, open the **appsettings.json** file in the root directory of the project.  
 
-   a. For the **AppId** key, replace `ENTER_YOUR_APP_ID` with the application ID of your registered application.  
+   a. For the **ClientId** key, replace `ENTER_YOUR_APP_ID` with the application ID of your registered application.  
 
-   b. For the **AppSecret** key, replace `ENTER_YOUR_SECRET` with the password of your registered application. Note that in production apps you should always use certificates as your application secrets, but for this sample we will use a simple shared secret password.  
+   b. For the **ClientSecret** key, replace `ENTER_YOUR_SECRET` with the password of your registered application. Note that in production apps you should always use certificates as your application secrets, but for this sample we will use a simple shared secret password.  
+   
+   c. For the **NotificationUrl**, replace "ENTER_YOUR_NOTIFYURL" with the Microsoft Azure Web App (ex: https://YOURWEBAPP.azurewebsites.net/).
+   
+   d. For the **BaseUrl**, replace "ENTER_YOUR_APP_URL" with the Microsoft Azure Web App (ex: https://YOURWEBAPP.azurewebsites.net/)
 
-4. Press F5 to build and run the sample. This will restore NuGet package dependencies and open the app.
+1. Right-click the project node in **Visual Studio 2017**, choose **Publish**.
 
-   >If you see any errors while installing packages, make sure the local path where you placed the solution is not too long/deep. Moving the solution closer to the root of your drive resolves this issue.
+1. Choose **Microsoft Azure App Service**.
 
-5. Sign in with your personal (MSA) account or your work or school account and grant the requested permissions.
+1. Choose **Select Existing**, and choose **OK**.
 
-6. You should see your profile picture and your profile data in JSON on the start page.
+1. Choose your newly created web app and select **OK**.
 
-7. Change the email address in the box to another valid account's email in the same tenant and choose the **Load data** button. When the operation completes, the profile of the choosen user is displayed on the page.
+1. Microsoft Azure web apps makes it easy to debug a web application in the cloud as if it were running locally. In the Publish screen, click **Settings**, then click the **Settings** tab, and change the configuration from **Release** to **Debug**.
 
-8. Optionally edit the recipient list, and then choose the **Send email** button. When the mail is sent, a Success message is displayed on the top of the page.
+1. Select **Save**.
+
+1. In the publish screen, select **Publish**.
+
+1. In the new browser window, select the **Sign in with Microsoft** link in the top right of the window. When prompted, grant consent to the requested permissions. Once logged in, the navigation menu will reflect the changes made to the application.
+1. Select Subscribe in the menu. This will initiate a new subscription to your mailbox, and will show the subscription properties when complete.
+1. The subscription was created for mail messages, any time a new message is created in your inbox in the next 15 minutes (the lifetime of the subscription request) a notification is received. To see this, select the Send mail menu item. Enter your email address, a subject and body, and select Send.
+ >**Note:** Your application could provide additional capabilities such as querying Microsoft Graph for additional data when a notification is received. This application allows multiple users to add subscriptions, but all users can see all notifications. Your application may require you to implement a per-user information store or filter data to only the notifications relevant to the current user.
 
 ## Key components of the sample
 
@@ -106,42 +131,13 @@ The following files contain code that's related to connecting to Microsoft Graph
 
 * [`appsettings.json`](MicrosoftGraphAspNetCoreConnectSample/appsettings.json) Contains values used for authentication and authorization. 
 * [`Startup.cs`](MicrosoftGraphAspNetCoreConnectSample/Startup.cs) Configures the app and the services it uses, including authentication.
-
-### Controllers
-
-* [`AccountController.cs`](MicrosoftGraphAspNetCoreConnectSample/Controllers/AccountController.cs) Handles sign in and sign out.  
-* [`HomeController.cs`](MicrosoftGraphAspNetCoreConnectSample/Controllers/HomeController.cs) Handles the requests from the UI.
-
-### Views
-
-* [`Index.cshtml`](MicrosoftGraphAspNetCoreConnectSample/Views/Home/Index.cshtml) Contains the sample's UI.
-
-### Helpers
-
 * [`GraphAuthProvider.cs`](MicrosoftGraphAspNetCoreConnectSample/Helpers/GraphAuthProvider.cs) Gets an access token using MSAL's **AcquireTokenSilentAsync** method.
 * [`GraphSdkHelper.cs`](MicrosoftGraphAspNetCoreConnectSample/Helpers/GraphSDKHelper.cs) Initiates the SDK client used to interact with Microsoft Graph.
 * [`GraphService.cs`](MicrosoftGraphAspNetCoreConnectSample/Helpers/GraphService.cs) Contains methods that use the **GraphServiceClient** to build and send calls to the Microsoft Graph service and to process the response.
   * The **GetUserJson** action gets the user's profile by an email adress and converts it to JSON.
   * The **GetPictureBase64** action gets the user's profile picture and converts it to a base64 string.
   * The **SendEmail** action sends an email on behalf of the current user.
-
-### TokenStorage
-
 * [`SessionTokenCache.cs`](MicrosoftGraphAspNetCoreConnectSample/Helpers/SessionTokenCache.cs) Sample implementation of an in-memory token cache. Production apps will typically use some method of persistent storage.
-
-## Contributing
-
-If you'd like to contribute to this sample, see [CONTRIBUTING.MD](/CONTRIBUTING.md).
-
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
-
-## Questions and comments
-
-We'd love to get your feedback about the Microsoft Graph Connect Sample for ASP.NET Core. You can send your questions and suggestions to us in the [Issues](https://github.com/microsoftgraph/aspnetcore-connect-sample/issues) section of this repository.
-
-Questions about Microsoft Graph in general should be posted to [Stack Overflow](https://stackoverflow.com/questions/tagged/MicrosoftGraph). Make sure that your questions or comments are tagged with *[MicrosoftGraph]*.
-
-You can suggest changes for Microsoft Graph on [UserVoice](https://officespdev.uservoice.com/).
 
 ## Additional resources
 
@@ -152,4 +148,4 @@ You can suggest changes for Microsoft Graph on [UserVoice](https://officespdev.u
 
 ## Copyright
 
-Copyright (c) 2017 Microsoft. All rights reserved.
+Copyright (c) 2018 Microsoft. All rights reserved.
